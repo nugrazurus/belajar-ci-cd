@@ -3,11 +3,33 @@ run-name: ${{ github.actor }} is learning GitHub Actions
 on: [push]
 jobs:
   check-bats-version:
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '14'
+          node-version: '16'
       - run: npm install -g bats
       - run: bats -v
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with: 
+          node-version: '16'
+
+      - name: SSH into VM and deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.VM_PORT }}
+          script: |
+            cd ~/app
+            git pull
